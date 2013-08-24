@@ -1,0 +1,30 @@
+package hunger.proto;
+
+message Connect {
+	required string nick = 1;
+}
+
+message ConnectAck {
+	required int32 id = 1;
+}
+
+message EntityUpdate {
+	optional int32 id = 1;
+	optional int32 x = 2;
+	optional int32 y = 3;
+}
+
+message WorldUpdate {
+	optional int32 x = 1;
+	optional int32 y = 2;
+	optional int32 w = 3;
+	optional int32 h = 4;
+	optional bytes data = 5;
+}
+
+message Packet {
+	optional Connect connect = 1;
+	optional ConnectAck connectAck = 2;
+	optional EntityUpdate entityUpdate = 3;
+	optional WorldUpdate worldUpdate = 4;
+}

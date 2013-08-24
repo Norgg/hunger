@@ -1,0 +1,13 @@
+-cmd haxelib run protohx generate protohx.json
+
+--next
+
+-main hunger.server.Server
+-cp src
+-cp src-gen
+-lib protohx
+-lib nape
+
+--macro allowPackage("flash")
+
+-neko Server.n
