@@ -6,16 +6,13 @@ import sys.net.Socket;
 import protohx.Message;
 import haxe.io.BytesOutput;
 
-/**
- * ...
- * @author John Turner
- */
 class PlayerSession {
 	public static var nextId = 1;
 	public var id: Int;
 	public var player: Player;
     public var socket: Socket;
 	public var msgQ: MsgQueue;
+	public var disconnected = false;
 	
     public function new(socket:Socket) {
         this.socket = socket;

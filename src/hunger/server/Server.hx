@@ -4,7 +4,9 @@ import haxe.ds.IntMap;
 import haxe.io.BytesOutput;
 import haxe.io.Bytes;
 import hunger.proto.Packet;
+import hunger.proto.ConnectAck;
 import hunger.shared.GameWorld;
+import hunger.shared.Player;
 import sys.net.Socket;
 import haxe.Timer;
 import neko.net.ThreadServer;
@@ -13,13 +15,14 @@ import neko.vm.Thread;
 import protohx.Message;
 
 class Server extends ThreadServer<PlayerSession, Bytes> {
-	//var world: GameWorld;
+	var world: GameWorld;
 	var sessions: IntMap<PlayerSession>;
-	var ticktime = 0.15;
+	static var ticktime: Float = { 1 / 60.0; };
+	var tick = 0;
     
 	public function new() {
         super();
-		//world = new GameWorld();
+		world = new GameWorld();
 		sessions = new IntMap<PlayerSession>();
 		Thread.create(worldUpdate);
     }
@@ -35,6 +38,7 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 
     override function clientDisconnected(session:PlayerSession) {
         Lib.println("client " + Std.string(session.id) + " disconnected");
+		session.disconnected = true;
     }
 
     override function readClientMessage(session:PlayerSession, buf:Bytes, pos:Int, len:Int) {
@@ -47,10 +51,19 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 	
 	function worldUpdate() {
 		while (true) {
+			tick++;
+
+			for (session in sessions) {
+				if (session.disconnected) {
+					sessions.remove(session.id);
+					world.remove(session.player);
+				}
+			}
+			
 			var t1 = Timer.stamp();
 			
 			//Update game world
-			//world.update();
+			world.update();
 			
 			//Handle messages
 			for (session in sessions) {
@@ -58,9 +71,38 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 					var msg:Packet = session.msgQ.popMsg();
 					if (msg.connect != null) {
 						trace(msg.connect.nick + " connected!");
+						var newPlayer = new Player();
+						newPlayer.nick = msg.connect.nick;
+						newPlayer.ownerId = session.id;
+						var ack = new Packet();
+						ack.connectAck = new ConnectAck();
+						ack.connectAck.id = newPlayer.id;
+						session.writeMsg(ack);
+						session.player = newPlayer;
+						
+						world.add(newPlayer);
+					}
+					
+					if (msg.entityUpdate != null) {
+						if (world.entities.exists(msg.entityUpdate.id)) {
+							var entity = world.entities.get(msg.entityUpdate.id);
+							entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
+						}
 					}
 				}
 			}
+			
+			//Send world updates every 3 ticks (~50ms)
+			if (tick % 3 == 0) {
+				for (entity in world.entities) {
+					for (session in sessions) {
+						if (entity.ownerId != session.id) {
+							session.writeMsg(entity.toPacket());
+						}
+					}
+				}
+			}
+			
 			var t2 = Timer.stamp();
 			var delta = t2 - t1;
 			if (delta < ticktime) {
@@ -74,6 +116,4 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
         trace("Running...");
         server.run("0.0.0.0", 4242);
     }
-	
-	
 }

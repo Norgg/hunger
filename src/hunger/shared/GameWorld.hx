@@ -22,4 +22,16 @@ class GameWorld {
 			entity.update();
 		}
 	}
+	
+	public function add(entity: Entity) {
+		entities.set(entity.id, entity);
+		entity.body.space = space;
+		entity.add();
+	}
+	
+	public function remove(entity: Entity) {
+		entities.remove(entity.id);
+		entity.body.space = null;
+		entity.remove();
+	}
 }

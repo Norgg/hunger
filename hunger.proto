@@ -1,5 +1,9 @@
 package hunger.proto;
 
+enum EntityType {
+	PLAYER = 1;
+}
+
 message Connect {
 	required string nick = 1;
 }
@@ -10,8 +14,10 @@ message ConnectAck {
 
 message EntityUpdate {
 	optional int32 id = 1;
-	optional int32 x = 2;
-	optional int32 y = 3;
+	optional EntityType type = 2;
+	optional float x = 3;
+	optional float y = 4;
+	optional float rotation = 5;
 }
 
 message WorldUpdate {

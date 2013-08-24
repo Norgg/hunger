@@ -3,6 +3,7 @@
 --next
 
 -main hunger.server.Server
+-debug
 -cp src
 -cp src-gen
 -lib protohx

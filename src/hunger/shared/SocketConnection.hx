@@ -51,7 +51,7 @@ class SocketConnection {
         socket.addEventListener(Event.CONNECT, connectHandler);
         socket.endian = flash.utils.Endian.LITTLE_ENDIAN ;
     }
-
+	
     private function closeHandler(e:Event):Void {
         trace("closeHandler");
         detach();
@@ -75,6 +75,7 @@ class SocketConnection {
         var bytes = b.getBytes();
         socket.writeShort(bytes.length);
         socket.writeBytes(cast bytes.getData());
+		socket.flush();
     }
 
     private function socketDataHandler(e:ProgressEvent):Void {
