@@ -13,18 +13,15 @@ import nape.space.Space;
 class GameWorld {
 	public var space: Space;
 	public var entities: IntMap<Entity>;
+	public var terrain: Terrain;
 	
 	public function new() {
 		entities = new IntMap<Entity>();
-		space = new Space(new Vec2(0, 100));
-		
-		var testgnd = new Body(BodyType.STATIC);
-		testgnd.shapes.add(new Polygon(Polygon.rect( -100, 300, 1000, 10)));
-		testgnd.space = space;
+		space = new Space(new Vec2(0, 500));
 	}
 	
 	public function update() {
-		space.step(1 / 60);
+		space.step(1 / 60.);
 		for (entity in entities) {
 			entity.update();
 		}

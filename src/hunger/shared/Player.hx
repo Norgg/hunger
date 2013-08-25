@@ -1,21 +1,35 @@
 package hunger.shared;
 import hunger.proto.EntityType;
+import nape.callbacks.InteractionType;
 import nape.geom.Vec2;
+import nape.shape.Circle;
 import nape.shape.Polygon;
+import nape.shape.Shape;
 
 class Player extends Entity {
 	var runtick = 0;
 	
 	public var nick: String;
 	
-	public var left = false;
-	public var right = false;
-	public var up = false;
-	public var down = false;
+	var jumpTimer = 0;
+	
+	var moveSpeed = 150;
+	var moveForce = 100;
+	var airMoveForce = 1;
+	var jumpForce = 30;
 	
 	public function new(local = false, x = 0., y = 0.) {
 		super(local);
-		body.shapes.add(new Polygon(Polygon.box(8, 16)));
+		var shapes: Array<Shape> = [
+			new Polygon(Polygon.rect(-3, -9, 6, 15)),
+			new Circle(3, Vec2.weak(0, 6))
+		];
+			
+		for (shape in shapes) {
+			shape.material.dynamicFriction = 0;
+			shape.material.staticFriction = 0;
+			body.shapes.add(shape);
+		}
 		body.allowRotation = false;
 		this.x = body.position.x = x;
 		this.y = body.position.y = y;
@@ -27,10 +41,10 @@ class Player extends Entity {
 		var runFrame = Std.int(runtick / 10) % 2;
 		var runOffset = -3 - runFrame * 6;
 		
-		if (body.velocity.x > 1) {
+		if (right) {
 			scaleX = 1;
 			texture("img/player-running.png", runOffset, -9);
-		} else if (body.velocity.x < -1) {
+		} else if (left) {
 			scaleX = -1;
 			texture("img/player-running.png", runOffset, -9);
 		} else {
@@ -47,10 +61,29 @@ class Player extends Entity {
 		super.update();
 		
 		runtick++;
-
-		if (right) body.applyImpulse(Vec2.weak(3, 0));
-		if (left)  body.applyImpulse(Vec2.weak(-3, 0));
 		
+		if (jumpTimer > 0) jumpTimer--;
+
+		if (body.interactingBodies(InteractionType.COLLISION).length > 0) {
+			if (right) body.applyImpulse(Vec2.weak(moveForce,   0));
+			if (left)  body.applyImpulse(Vec2.weak(-moveForce,  0));
+			if (up && jumpTimer <= 0) {
+				//trace("jump!");
+				body.applyImpulse(Vec2.weak(0, -jumpForce));
+				jumpTimer = 30;
+			}
+			if (!left && !right && !up) {
+				body.velocity = body.velocity.mul(0.5);
+			}
+		} else {
+			if (right) body.applyImpulse(Vec2.weak(airMoveForce,   0));
+			if (left)  body.applyImpulse(Vec2.weak(-airMoveForce,  0));
+		}
+		if (body.velocity.x > moveSpeed) body.velocity.x = moveSpeed;
+		if (body.velocity.x < -moveSpeed) body.velocity.x = -moveSpeed;
+		
+		#if flash
 		draw();
+		#end
 	}
 }

@@ -14,6 +14,8 @@ import flash.Lib;
 import haxe.ds.IntMap.IntMap;
 import haxe.io.Bytes;
 import hunger.shared.GameWorld;
+import hunger.shared.Sword;
+import hunger.shared.Terrain;
 import nape.geom.Vec2;
 import protohx.Message;
 
@@ -23,11 +25,13 @@ class Main extends Sprite {
 	var inited:Bool;
 	var world: GameWorld;
 	var player: Player;
+	var sword: Sword;
 	var socket: SocketConnection;
 	var msgQ: MsgQueue;
 	var connected = false;
 	var nick = "player";
 	public var tick = 0;
+	var terrain: Terrain;
 	
 	function resize(e) {
 		if (!inited) init();
@@ -41,6 +45,7 @@ class Main extends Sprite {
 		
         //players = new IntMap<PlayerNode>();
 		player = new Player(true, 500 * Math.random(), 25);
+		sword = new Sword(player);
         msgQ = new MsgQueue();
         socket = new SocketConnection();
 		world = new GameWorld();
@@ -65,7 +70,48 @@ class Main extends Sprite {
 	
 	function update(e: Event) {
 		tick++;
+		
+		//Check messages
+		while (msgQ.hasMsg()) {
+            var msg:Packet = msgQ.popMsg();
+			if (msg.connectAck != null) {
+				connected = true;
+				player.id = msg.connectAck.id;
+				trace("Adding player.");
+				world.add(player);
+				
+				terrain = new Terrain();
+				terrain.fromUpdate(msg.connectAck.terrain);
+				world.add(terrain);
+			}
+			
+			if (msg.entityUpdate != null) {
+				//trace("Got entity update");
+				if (world.entities.exists(msg.entityUpdate.id)) {
+					//trace("Updating existing entity.");
+					var entity = world.entities.get(msg.entityUpdate.id);
+					entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
+				} else {
+					switch (msg.entityUpdate.type) {
+						case EntityType.PLAYER:
+							//trace("Creating new entity");
+							var entity = new Player(false);
+							entity.id = msg.entityUpdate.id;
+							entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
+							world.add(entity);
+					}
+				}
+			}
+        }
+		
 		world.update();
+				
+		x = -player.x + stage.stageWidth / 2;
+		y = -player.y + stage.stageHeight / 2;
+		
+		if (terrain != null) {
+			terrain.draw();
+		}
 		
 		if (tick % 3 == 0) {
 			//trace("Writing player update");
@@ -75,33 +121,6 @@ class Main extends Sprite {
 	   
 	private function addBytes(bytes:Bytes):Void {
         msgQ.addBytes(bytes);
-        while (msgQ.hasMsg()) {
-            var msg:Packet = msgQ.popMsg();
-			if (msg.connectAck != null) {
-				connected = true;
-				player.id = msg.connectAck.id;
-				trace("Adding player.");
-				world.add(player);
-			}
-			
-			if (msg.entityUpdate != null) {
-				//trace("Got entity update");
-				if (world.entities.exists(msg.entityUpdate.id)) {
-					trace("Updating existing entity.");
-					var entity = world.entities.get(msg.entityUpdate.id);
-					entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
-				} else {
-					switch (msg.entityUpdate.type) {
-						case EntityType.PLAYER:
-							trace("Creating new entity");
-							var entity = new Player(false);
-							entity.id = msg.entityUpdate.id;
-							entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
-							world.add(entity);
-					}
-				}
-			}
-        }
     }
 	
 	private function onClose():Void { trace("Connection closed. :("); }

@@ -5,12 +5,15 @@ import flash.geom.Matrix;
 import openfl.Assets;
 
 class BaseEntity extends Sprite {
+	var main: Main;
+	
 	public function new() {
 		super();
+		main = Main.m;
 	}
 	
 	public function add() {
-		Main.m.addChild(this);
+		main.addChild(this);
 		draw();
 	}
 	

@@ -11,6 +11,7 @@ message Connect {
 
 message ConnectAck {
 	required int32 id = 1;
+	optional TerrainUpdate terrain = 2;
 }
 
 message EntityUpdate {
@@ -21,17 +22,14 @@ message EntityUpdate {
 	optional float rotation = 5;
 }
 
-message WorldUpdate {
-	optional int32 x = 1;
-	optional int32 y = 2;
-	optional int32 w = 3;
-	optional int32 h = 4;
-	optional bytes data = 5;
+message TerrainUpdate {
+	optional int32 id = 1;
+	repeated float heights = 2;
 }
 
 message Packet {
 	optional Connect connect = 1;
 	optional ConnectAck connectAck = 2;
 	optional EntityUpdate entityUpdate = 3;
-	optional WorldUpdate worldUpdate = 4;
+	optional TerrainUpdate terrainUpdate = 4;
 }

@@ -7,6 +7,7 @@ import hunger.proto.Packet;
 import hunger.proto.ConnectAck;
 import hunger.shared.GameWorld;
 import hunger.shared.Player;
+import hunger.shared.Terrain;
 import sys.net.Socket;
 import haxe.Timer;
 import neko.net.ThreadServer;
@@ -19,10 +20,18 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 	var sessions: IntMap<PlayerSession>;
 	static var ticktime: Float = { 1 / 60.0; };
 	var tick = 0;
+	
+	var terrain: Terrain;
     
 	public function new() {
         super();
 		world = new GameWorld();
+
+		terrain = new Terrain();
+		terrain.generateHeights();
+		terrain.loadHeights();
+		world.add(terrain);
+
 		sessions = new IntMap<PlayerSession>();
 		Thread.create(worldUpdate);
     }
@@ -77,6 +86,7 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 						var ack = new Packet();
 						ack.connectAck = new ConnectAck();
 						ack.connectAck.id = newPlayer.id;
+						ack.connectAck.terrain = terrain.message();
 						session.writeMsg(ack);
 						session.player = newPlayer;
 						
@@ -86,7 +96,9 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 					if (msg.entityUpdate != null) {
 						if (world.entities.exists(msg.entityUpdate.id)) {
 							var entity = world.entities.get(msg.entityUpdate.id);
-							entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
+							if (entity.ownerId == session.id) {
+								entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
+							}
 						}
 					}
 				}
@@ -96,7 +108,7 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 			if (tick % 3 == 0) {
 				for (entity in world.entities) {
 					for (session in sessions) {
-						if (entity.ownerId != session.id) {
+						if (entity.ownerId != session.id && !Std.is(entity, Terrain)) {
 							trace("Sending an entity to client");
 							session.writeMsg(entity.toPacket());
 						}

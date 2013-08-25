@@ -12,6 +12,8 @@ class BaseEntity {
 	//Unused on the server.
 	var graphics: Dynamic;
 	var scaleX = 0.;
+	var stage: Dynamic;
+	var main: Dynamic;
 
 	public function new() {
 		graphics = cast( { } );
