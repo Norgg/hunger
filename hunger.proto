@@ -26,6 +26,14 @@ message EntityUpdate {
 	optional float rotation = 5;
 }
 
+message HungerUpdate {
+	optional float hunger = 1;
+}
+
+message DestroyEntity {
+	optional int32 id = 1;
+}
+
 message TerrainUpdate {
 	optional int32 id = 1;
 	repeated float heights = 2;
@@ -36,4 +44,6 @@ message Packet {
 	optional ConnectAck connectAck = 2;
 	optional EntityUpdate entityUpdate = 3;
 	optional TerrainUpdate terrainUpdate = 4;
+	optional DestroyEntity destroyEntity = 5;
+	optional HungerUpdate hungerUpdate = 6;
 }

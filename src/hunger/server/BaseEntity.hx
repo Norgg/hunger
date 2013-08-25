@@ -5,9 +5,9 @@ package hunger.server;
  * @author John Turner
  */
 class BaseEntity {
-	var x: Float;
-	var y: Float;
-	var rotation: Float;
+	public var x: Float;
+	public var y: Float;
+	public var rotation: Float;
 	
 	//Unused on the server.
 	var graphics: Dynamic;

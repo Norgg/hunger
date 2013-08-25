@@ -1,11 +1,16 @@
 package hunger.client;
 
 import flash.events.KeyboardEvent;
+import flash.text.TextField;
+import flash.text.TextFieldAutoSize;
+import flash.text.TextFormat;
 import flash.ui.Keyboard;
 import hunger.proto.Connect;
 import hunger.proto.EntityType;
 import hunger.proto.Packet;
+import hunger.shared.Animal;
 import hunger.shared.Entity;
+import hunger.shared.Food;
 import hunger.shared.MsgQueue;
 import hunger.shared.Player;
 import hunger.shared.SocketConnection;
@@ -33,6 +38,10 @@ class Main extends Sprite {
 	var nick = "player";
 	public var tick = 0;
 	var terrain: Terrain;
+	var finished = false;
+	var deathTimer = 60;
+	var dead = false;
+	var text: TextField;
 	
 	function resize(e) {
 		if (!inited) init();
@@ -45,12 +54,20 @@ class Main extends Sprite {
 		m = this;
 		
         //players = new IntMap<PlayerNode>();
-		player = new Player(true, 500 * Math.random(), 25);
+		player = new Player(true, 500 * Math.random(), 200);
 		sword = new Sword(player);
         msgQ = new MsgQueue();
         socket = new SocketConnection();
 		world = new GameWorld();
-        socket.connect("localhost", 4242, onConnect, addBytes, onClose);
+        socket.connect("localhost", 42424, onConnect, addBytes, onClose);
+		
+		text = new TextField();
+		text.defaultTextFormat = new TextFormat("_sans", 10, 0);
+		text.autoSize = TextFieldAutoSize.LEFT;
+		text.x = 0;
+		text.y = 0;
+		text.text = "Connecting...";
+		stage.addChild(text);
 	}
 	
 	private function onConnect():Void { 
@@ -70,12 +87,20 @@ class Main extends Sprite {
 	}
 	
 	function update(e: Event) {
+		if (finished) return;
 		tick++;
+		
+		if (dead) deathTimer--;
+		if (deathTimer <= 0) {
+			reset();
+			finished = true;
+		}
 		
 		//Check messages
 		while (msgQ.hasMsg()) {
             var msg:Packet = msgQ.popMsg();
 			if (msg.connectAck != null) {
+				text.text = "";
 				connected = true;
 				player.id = msg.connectAck.playerId;
 				sword.id = msg.connectAck.swordId;
@@ -101,6 +126,10 @@ class Main extends Sprite {
 							entity = new Player(false);
 						case EntityType.SWORD:
 							entity = new Sword(null);
+						case EntityType.FOOD:
+							entity = new Food(false);
+						case EntityType.ANIMAL:
+							entity = new Animal(false);
 						default:
 							throw("Entity type not found: " + msg.entityUpdate.type);
 					}
@@ -109,10 +138,26 @@ class Main extends Sprite {
 					world.add(entity);
 				}
 			}
+			
+			if (msg.destroyEntity != null) {
+				//trace("Removing an entity");
+				if (!dead && msg.destroyEntity.id == player.id) {
+					player = null;
+					sword = null;
+					dead = true;
+				}
+				world.remove(world.entities.get(msg.destroyEntity.id));
+			}
+			
+			if (msg.hungerUpdate != null) {
+				text.text = "Food: " + (Std.int(msg.hungerUpdate.hunger / 6)/10);
+			}
         }
 		
 		world.update();
-				
+		
+		if (dead) return;
+		
 		x = -player.x + stage.stageWidth / 2;
 		y = -player.y + stage.stageHeight / 2;
 		
@@ -134,6 +179,7 @@ class Main extends Sprite {
 	private function onClose():Void { trace("Connection closed. :("); }
 	
 	function keydown(evt: KeyboardEvent) {
+		if (dead) return;
 		switch(evt.keyCode) {
 			case Keyboard.W: player.up = true;
 			case Keyboard.A: player.left = true;
@@ -143,6 +189,7 @@ class Main extends Sprite {
 	}
 	
 	function keyup(evt: KeyboardEvent) {
+		if (dead) return;
 		switch(evt.keyCode) {
 			case Keyboard.W: player.up = false;
 			case Keyboard.A: player.left = false;
@@ -165,6 +212,19 @@ class Main extends Sprite {
 		#else
 		init();
 		#end
+	}
+	
+	public function reset() {
+		stage.removeEventListener(Event.ENTER_FRAME, update);
+		stage.removeEventListener(KeyboardEvent.KEY_DOWN, keydown);
+		stage.removeEventListener(KeyboardEvent.KEY_UP,   keyup);
+		
+		stage.removeChild(text);
+		
+		try { socket.socket.close(); } catch (e: Dynamic) { };
+		
+		parent.removeChild(Main.m);
+		Lib.current.addChild(new Main());
 	}
 	
 	public static function main() {

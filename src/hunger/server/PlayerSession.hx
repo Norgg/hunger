@@ -27,9 +27,11 @@ class PlayerSession {
 
     public function close():Void {
         socket.close();
+		disconnected = true;
     }
 
     public function writeMsg(msg: Message):Void {
+		if (disconnected) return;
         try{
             var bytes = msgToBytes(msg);
             socket.output.writeUInt16(bytes.length);

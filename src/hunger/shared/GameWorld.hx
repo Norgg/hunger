@@ -34,7 +34,11 @@ class GameWorld {
 	}
 	
 	public function remove(entity: Entity) {
+		if (entity == null) return;
 		entities.remove(entity.id);
+		for (joint in entity.body.constraints) {
+			joint.space = null;
+		}
 		entity.body.space = null;
 		entity.remove();
 	}

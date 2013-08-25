@@ -28,7 +28,7 @@ import flash.events.IOErrorEvent;
 import flash.events.SecurityErrorEvent;
 import flash.events.ProgressEvent;
 class SocketConnection {
-    var socket:flash.net.Socket;
+    public var socket:flash.net.Socket;
 
     public function connect(host, port, onConnect, addBytes, onClose) {
         socket.connect(host, port);
@@ -86,7 +86,7 @@ class SocketConnection {
             var bs = Bytes.ofData(cast b);
             addBytes(bs);
         } catch (e:Dynamic) {
-            trace('error: ' + e);
+            //trace('error: ' + e);
         }
     }
 

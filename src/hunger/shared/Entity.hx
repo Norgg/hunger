@@ -51,6 +51,7 @@ class Entity extends BaseEntity {
 			}
 		}
 		body = new Body(bodyType);
+		body.userData.entity = this;
 	}
 	
 	public function update() {

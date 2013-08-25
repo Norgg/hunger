@@ -1,5 +1,6 @@
 package hunger.shared;
 import hunger.proto.EntityType;
+import hunger.proto.Packet;
 import nape.callbacks.InteractionType;
 import nape.dynamics.InteractionGroup;
 import nape.geom.Vec2;
@@ -20,6 +21,9 @@ class Player extends Entity {
 	var airMoveForce = 1;
 	var jumpForce = 30;
 	
+	public var hunger = 600;
+	public var dead = false;
+	
 	public function new(local = false, x = 0., y = 0.) {
 		super(local);
 		var shapes: Array<Shape> = [
@@ -30,6 +34,9 @@ class Player extends Entity {
 		for (shape in shapes) {
 			shape.material.dynamicFriction = 0;
 			shape.material.staticFriction = 0;
+			#if !flash
+			shape.sensorEnabled = true;
+			#end
 			body.shapes.add(shape);
 		}
 		body.allowRotation = false;
@@ -60,14 +67,23 @@ class Player extends Entity {
 		return EntityType.PLAYER;
 	}
 	
+	public function isDead() {
+		return dead;
+	}
+	
 	override public function update() {
 		super.update();
 		
 		runtick++;
 		
+		hunger--;
+		if (hunger == 0) {
+			dead = true;
+		}
+		
 		if (jumpTimer > 0) jumpTimer--;
 
-		if (body.interactingBodies(InteractionType.COLLISION).length > 0) {
+		if (body.interactingBodies(InteractionType.COLLISION, 1).length > 0) {
 			if (right) body.applyImpulse(Vec2.weak(moveForce,   0));
 			if (left)  body.applyImpulse(Vec2.weak(-moveForce,  0));
 			if (up && jumpTimer <= 0) {
