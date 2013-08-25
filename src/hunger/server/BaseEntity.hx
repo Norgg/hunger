@@ -8,8 +8,11 @@ class BaseEntity {
 	var x: Float;
 	var y: Float;
 	var rotation: Float;
-	var graphics: Dynamic;
 	
+	//Unused on the server.
+	var graphics: Dynamic;
+	var scaleX = 0.;
+
 	public function new() {
 		graphics = cast( { } );
 	}
@@ -21,5 +24,8 @@ class BaseEntity {
 	}
 	
 	public function draw() {
+	}
+	
+	public function texture(textureName, x, y) {
 	}
 }

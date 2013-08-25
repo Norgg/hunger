@@ -1,5 +1,7 @@
 package hunger.client;
 
+import flash.events.KeyboardEvent;
+import flash.ui.Keyboard;
 import hunger.proto.Connect;
 import hunger.proto.EntityType;
 import hunger.proto.Packet;
@@ -12,6 +14,7 @@ import flash.Lib;
 import haxe.ds.IntMap.IntMap;
 import haxe.io.Bytes;
 import hunger.shared.GameWorld;
+import nape.geom.Vec2;
 import protohx.Message;
 
 class Main extends Sprite {
@@ -24,7 +27,7 @@ class Main extends Sprite {
 	var msgQ: MsgQueue;
 	var connected = false;
 	var nick = "player";
-	var tick = 0;
+	public var tick = 0;
 	
 	function resize(e) {
 		if (!inited) init();
@@ -55,6 +58,9 @@ class Main extends Sprite {
 		socket.writeMsg(packet);
 		
 		stage.addEventListener(Event.ENTER_FRAME, update);
+		
+		stage.addEventListener(KeyboardEvent.KEY_DOWN, keydown);
+		stage.addEventListener(KeyboardEvent.KEY_UP,   keyup);
 	}
 	
 	function update(e: Event) {
@@ -62,7 +68,7 @@ class Main extends Sprite {
 		world.update();
 		
 		if (tick % 3 == 0) {
-			trace("Writing player update");
+			//trace("Writing player update");
 			socket.writeMsg(player.toPacket());
 		}
 	}
@@ -87,16 +93,36 @@ class Main extends Sprite {
 				} else {
 					switch (msg.entityUpdate.type) {
 						case EntityType.PLAYER:
-							var entity = new Player();
+							trace("Creating new entity");
+							var entity = new Player(false);
 							entity.id = msg.entityUpdate.id;
 							entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
+							world.add(entity);
 					}
 				}
 			}
         }
     }
 	
-	private function onClose():Void { }
+	private function onClose():Void { trace("Connection closed. :("); }
+	
+	function keydown(evt: KeyboardEvent) {
+		switch(evt.keyCode) {
+			case Keyboard.W: player.up = true;
+			case Keyboard.A: player.left = true;
+			case Keyboard.S: player.down = true;
+			case Keyboard.D: player.right = true;
+		}
+	}
+	
+	function keyup(evt: KeyboardEvent) {
+		switch(evt.keyCode) {
+			case Keyboard.W: player.up = false;
+			case Keyboard.A: player.left = false;
+			case Keyboard.S: player.down = false;
+			case Keyboard.D: player.right = false;
+		}
+	}
 	
 
 	public function new() {

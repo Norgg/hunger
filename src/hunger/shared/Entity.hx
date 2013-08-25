@@ -1,4 +1,5 @@
 package hunger.shared;
+import hunger.proto.EntityType;
 import hunger.proto.Packet;
 import hunger.proto.EntityUpdate;
 import nape.phys.Body;
@@ -74,7 +75,12 @@ class Entity extends BaseEntity {
 		packet.entityUpdate.x = body.position.x;
 		packet.entityUpdate.y = body.position.y;
 		packet.entityUpdate.rotation = body.rotation;
+		packet.entityUpdate.type = getType();
 		return packet;
+	}
+	
+	public function getType() {
+		return EntityType.UNKNOWN;
 	}
 	
 	public function lerp() {
@@ -87,8 +93,8 @@ class Entity extends BaseEntity {
 		if (lerpBy >= 1) lerpBy = 1;
 		if (nextT == lastT || lerpBy < 0) lerpBy = 0;
 		
-		x = (lerpBy * nextX) + ((1 - lerpBy) * lastX);
-		y = (lerpBy * nextY) + ((1 - lerpBy) * lastY);
+		x = Std.int((lerpBy * nextX) + ((1 - lerpBy) * lastX));
+		y = Std.int((lerpBy * nextY) + ((1 - lerpBy) * lastY));
 		rotation = 180 * (lerpBy * nextR) + ((1 - lerpBy) * lastR)/ Math.PI;
 	}
 }

@@ -97,6 +97,7 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 				for (entity in world.entities) {
 					for (session in sessions) {
 						if (entity.ownerId != session.id) {
+							trace("Sending an entity to client");
 							session.writeMsg(entity.toPacket());
 						}
 					}
