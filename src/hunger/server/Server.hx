@@ -209,6 +209,15 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 					world.add(animal);
 				}
 				
+				//Clean up rotten food
+				for (entity in world.entities) {
+					if (Std.is(entity, Food)) {
+						if (cast(entity, Food).ttl <= 0) {
+							remove(entity);
+						}
+					}
+				}
+				
 				var t2 = Timer.stamp();
 				var delta = t2 - t1;
 				if (delta < ticktime) {

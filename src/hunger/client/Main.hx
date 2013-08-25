@@ -159,7 +159,16 @@ class Main extends Sprite {
 			}
 			
 			if (msg.hungerUpdate != null) {
-				text.text = "Food: " + (Std.int(msg.hungerUpdate.hunger / 6)/10);
+				if (msg.hungerUpdate.hunger > 6000) {
+					text.defaultTextFormat = new TextFormat("_sans", 50, 0xff0000);
+					text.text = "HURRAH! STOMACH IS FULL!";
+					stage.removeEventListener(Event.ENTER_FRAME, update);
+					stage.removeEventListener(KeyboardEvent.KEY_DOWN, keydown);
+					stage.removeEventListener(KeyboardEvent.KEY_UP,   keyup);
+					try { socket.socket.close(); } catch (e: Dynamic) { };
+				} else {
+					text.text = "Food: " + (Std.int(msg.hungerUpdate.hunger / 6) / 10);
+				}
 			}
         }
 		

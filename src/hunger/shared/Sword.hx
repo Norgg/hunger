@@ -45,7 +45,7 @@ class Sword extends Entity {
 		graphics.clear();
 		
 		texture("img/sword.png", -3.5, -11);
-		graphics.drawRect( -3.5, -9.5, 7, 22);
+		graphics.drawRect( -3.5, -11, 7, 22);
 	}
 	
 	override public function add() {
