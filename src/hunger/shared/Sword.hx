@@ -21,31 +21,36 @@ class Sword extends Entity {
 		}
 		
 		super(isLocal, false, null, ownerId);
-		var shape = new Polygon(Polygon.box(3, 22));
-		shape.material.dynamicFriction = 0;
-		shape.material.staticFriction = 0;
+
+		var shape = new Polygon(Polygon.box(3, 26));
+		
 		#if !flash
+		shape = new Polygon(Polygon.box(5, 28));
 		shape.sensorEnabled = true;
 		#end
+		
+		shape.material.dynamicFriction = 0;
+		shape.material.staticFriction = 0;
+
 		body.shapes.add(shape);
 		//this.x = body.position.x = player.x + 9.5;
 		//this.y = body.position.y = player.y + 5;
 		
 		if (player != null && player.local) {
 			body.group = player.group;
-			joint = new PivotJoint(body, player.body, Vec2.weak(0, 11), Vec2.weak(0, -6));
+			joint = new PivotJoint(body, player.body, Vec2.weak(0, 13), Vec2.weak(0, -6));
+			player.sword = this;
 		}
 		
 		this.body.rotation = Math.PI / 2;
 		
-		player.sword = this;
 	}
 	
 	override public function draw() {
 		graphics.clear();
 		
-		texture("img/sword.png", -3.5, -11);
-		graphics.drawRect( -3.5, -11, 7, 22);
+		texture("img/sword.png", -3.5, -13);
+		graphics.drawRect( -3.5, -13, 7, 26);
 	}
 	
 	override public function add() {

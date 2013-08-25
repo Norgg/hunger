@@ -176,14 +176,13 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 								numAnimals--;
 								remove(otherBody.userData.entity);
 								world.add(new Food(true, otherBody.userData.entity.x, otherBody.userData.entity.y));
-								world.add(new Food(true, otherBody.userData.entity.x, otherBody.userData.entity.y));
 							}
 						}
 					}
 				}
 				
-				//Send world updates every 3 ticks (~50ms)
-				if (tick % 3 == 0) {
+				//Send world updates every 6 ticks (~100ms)
+				if (tick % 4 == 0) {
 					for (entity in world.entities) {
 						for (session in sessions) {
 							if (entity.ownerId != session.id && !Std.is(entity, Terrain) && entity.changed) {
@@ -209,12 +208,16 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 					world.add(animal);
 				}
 				
-				//Clean up rotten food
+				//Clean up rotten food / lost entities
 				for (entity in world.entities) {
 					if (Std.is(entity, Food)) {
 						if (cast(entity, Food).ttl <= 0) {
 							remove(entity);
 						}
+					}
+					
+					if (entity.x > 3000 || entity.x < -3000 || entity.y > 3000 || entity.y < -3000) {
+						remove(entity);
 					}
 				}
 				

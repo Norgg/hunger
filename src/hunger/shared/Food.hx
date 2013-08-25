@@ -8,7 +8,7 @@ import nape.shape.Polygon;
  * @author John Turner
  */
 class Food extends Entity {
-	public var ttl = 120;
+	public var ttl = 240;
 	
 	public function new(local = false, x = 0., y = 0.) {
 		super(local, false);

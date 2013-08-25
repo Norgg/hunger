@@ -21,7 +21,7 @@ class Player extends Entity {
 	var moveForce = 100;
 	var airMoveForce = 1;
 	var jumpForce = 30;
-	var swingForce = 10;
+	var swingForce = 20;
 	public var sword: Sword;
 	
 	public var hunger = 600;
@@ -29,10 +29,17 @@ class Player extends Entity {
 	
 	public function new(local = false, x = 0., y = 0.) {
 		super(local);
+		#if flash
 		var shapes: Array<Shape> = [
 			new Polygon(Polygon.rect(-3, -9, 6, 15)),
 			new Circle(3, Vec2.weak(0, 6))
 		];
+		#else
+		var shapes: Array<Shape> = [
+			new Polygon(Polygon.rect(-4, -10, 8, 16)),
+			new Circle(4, Vec2.weak(0, 6))
+		];
+		#end
 			
 		for (shape in shapes) {
 			shape.material.dynamicFriction = 0;

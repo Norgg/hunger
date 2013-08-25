@@ -26,7 +26,7 @@ class PlayerSession {
     }
 
     public function close():Void {
-        socket.close();
+        try { socket.close(); } catch (e: Dynamic) { }
 		disconnected = true;
     }
 
@@ -36,7 +36,7 @@ class PlayerSession {
             var bytes = msgToBytes(msg);
             socket.output.writeUInt16(bytes.length);
             socket.output.write(bytes);
-            socket.output.flush();
+            //socket.output.flush();
         }catch(e:Dynamic){
             trace(e);
             #if haxe3
@@ -44,6 +44,7 @@ class PlayerSession {
             #else
             trace(haxe.Stack.toString(haxe.Stack.exceptionStack()));
             #end
+			//close();
         }
     }
 

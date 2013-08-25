@@ -1,6 +1,7 @@
 package hunger.client;
 
 import flash.events.KeyboardEvent;
+import flash.events.MouseEvent;
 import flash.external.ExternalInterface;
 import flash.text.TextField;
 import flash.text.TextFieldAutoSize;
@@ -29,6 +30,8 @@ import protohx.Message;
 class Main extends Sprite {
 	public static var m: Main;
 	
+	public static var needsClick = true;
+	
 	var inited:Bool;
 	var world: GameWorld;
 	var player: Player;
@@ -55,28 +58,26 @@ class Main extends Sprite {
 		m = this;
 		
         //players = new IntMap<PlayerNode>();
-		player = new Player(true, 500 * Math.random(), 200);
+		player = new Player(true, 1000 * (Math.random()-0.5), 200);
 		sword = new Sword(player);
         msgQ = new MsgQueue();
         socket = new SocketConnection();
 		world = new GameWorld();
-		
-		var host = "localhost:42424";
-		
-		try { host = ExternalInterface.call("host"); } catch (e: Dynamic) { }
 
-		var hostname = host.split(":")[0];
-		var port = Std.parseInt(host.split(":")[1]);
-		
-        socket.connect(hostname, port, onConnect, addBytes, onClose);
-		
 		text = new TextField();
-		text.defaultTextFormat = new TextFormat("_sans", 10, 0);
+		text.defaultTextFormat = new TextFormat("_sans", 18, 0);
 		text.autoSize = TextFieldAutoSize.LEFT;
 		text.x = 0;
 		text.y = 0;
-		text.text = "Connecting...";
+		text.text = "Click.";
 		stage.addChild(text);
+		
+		if (needsClick) {
+			stage.addEventListener(MouseEvent.CLICK, connect);
+			needsClick = false;
+		} else {
+			connect(null);
+		}
 	}
 	
 	private function onConnect():Void { 
@@ -88,11 +89,27 @@ class Main extends Sprite {
 		var packet = new Packet();
 		packet.connect = connectMsg;
 		socket.writeMsg(packet);
-		
+				
 		stage.addEventListener(Event.ENTER_FRAME, update);
 		
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, keydown);
 		stage.addEventListener(KeyboardEvent.KEY_UP,   keyup);
+	}
+	
+	function connect(evt) {
+		text.defaultTextFormat = new TextFormat("_sans", 10, 0);
+		text.text = "connecting...";
+				
+		var host = "localhost:42424";
+		
+		stage.removeEventListener(MouseEvent.CLICK, connect);
+		
+		try { host = ExternalInterface.call("host"); } catch (e: Dynamic) { }
+
+		var hostname = host.split(":")[0];
+		var port = Std.parseInt(host.split(":")[1]);
+		
+        socket.connect(hostname, port, onConnect, addBytes, onClose);
 	}
 	
 	function update(e: Event) {
@@ -159,7 +176,7 @@ class Main extends Sprite {
 			}
 			
 			if (msg.hungerUpdate != null) {
-				if (msg.hungerUpdate.hunger > 6000) {
+				if (msg.hungerUpdate.hunger > 3000) {
 					text.defaultTextFormat = new TextFormat("_sans", 50, 0xff0000);
 					text.text = "HURRAH! STOMACH IS FULL!";
 					stage.removeEventListener(Event.ENTER_FRAME, update);
@@ -176,14 +193,14 @@ class Main extends Sprite {
 		
 		if (dead) return;
 		
-		x = -player.x + stage.stageWidth / 2;
-		y = -player.y + stage.stageHeight / 2;
+		x = Std.int( -player.x + stage.stageWidth / 2);
+		y = Std.int( -player.y + stage.stageHeight / 2);
 		
 		if (terrain != null) {
 			terrain.draw();
 		}
 		
-		if (tick % 3 == 0) {
+		if (tick % 2 == 0) {
 			//trace("Writing player update");
 			socket.writeMsg(player.toPacket());
 			socket.writeMsg(sword.toPacket());
@@ -194,7 +211,9 @@ class Main extends Sprite {
         msgQ.addBytes(bytes);
     }
 	
-	private function onClose():Void { trace("Connection closed. :("); }
+	private function onClose():Void { 
+		reset(); 
+	}
 	
 	function keydown(evt: KeyboardEvent) {
 		if (dead) return;
