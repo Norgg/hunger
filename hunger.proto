@@ -3,6 +3,9 @@ package hunger.proto;
 enum EntityType {
 	UNKNOWN = 0;
 	PLAYER = 1;
+	SWORD = 2;
+	ANIMAL = 3;
+	FOOD = 4;
 }
 
 message Connect {
@@ -10,8 +13,9 @@ message Connect {
 }
 
 message ConnectAck {
-	required int32 id = 1;
-	optional TerrainUpdate terrain = 2;
+	required int32 playerId = 1;
+	required int32 swordId = 2;
+	optional TerrainUpdate terrain = 3;
 }
 
 message EntityUpdate {

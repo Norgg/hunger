@@ -39,7 +39,7 @@ class Terrain extends Entity {
 	}
 	
 	public function loadHeights() {
-		trace("Loading terrain");
+		//trace("Loading terrain");
 		var lastHeight = 400.;
 		var i = 0;
 		for (height in heights) {

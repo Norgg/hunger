@@ -28,6 +28,6 @@ class BaseEntity {
 	public function draw() {
 	}
 	
-	public function texture(textureName, x, y) {
+	public function texture(textureName, x=0., y=0.) {
 	}
 }

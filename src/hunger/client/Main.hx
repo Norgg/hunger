@@ -5,6 +5,7 @@ import flash.ui.Keyboard;
 import hunger.proto.Connect;
 import hunger.proto.EntityType;
 import hunger.proto.Packet;
+import hunger.shared.Entity;
 import hunger.shared.MsgQueue;
 import hunger.shared.Player;
 import hunger.shared.SocketConnection;
@@ -53,7 +54,7 @@ class Main extends Sprite {
 	}
 	
 	private function onConnect():Void { 
-		trace("Connected");
+		//trace("Connected");
 		var connectMsg: Connect = new Connect();
 		connectMsg.nick = nick;
 		player.nick = nick;
@@ -76,9 +77,11 @@ class Main extends Sprite {
             var msg:Packet = msgQ.popMsg();
 			if (msg.connectAck != null) {
 				connected = true;
-				player.id = msg.connectAck.id;
-				trace("Adding player.");
+				player.id = msg.connectAck.playerId;
+				sword.id = msg.connectAck.swordId;
+				//trace("Adding player.");
 				world.add(player);
+				world.add(sword);
 				
 				terrain = new Terrain();
 				terrain.fromUpdate(msg.connectAck.terrain);
@@ -92,14 +95,18 @@ class Main extends Sprite {
 					var entity = world.entities.get(msg.entityUpdate.id);
 					entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
 				} else {
+					var entity: Entity = null;
 					switch (msg.entityUpdate.type) {
 						case EntityType.PLAYER:
-							//trace("Creating new entity");
-							var entity = new Player(false);
-							entity.id = msg.entityUpdate.id;
-							entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
-							world.add(entity);
+							entity = new Player(false);
+						case EntityType.SWORD:
+							entity = new Sword(null);
+						default:
+							throw("Entity type not found: " + msg.entityUpdate.type);
 					}
+					entity.id = msg.entityUpdate.id;
+					entity.setFromPacket(msg.entityUpdate.x, msg.entityUpdate.y, msg.entityUpdate.rotation);
+					world.add(entity);
 				}
 			}
         }
@@ -116,6 +123,7 @@ class Main extends Sprite {
 		if (tick % 3 == 0) {
 			//trace("Writing player update");
 			socket.writeMsg(player.toPacket());
+			socket.writeMsg(sword.toPacket());
 		}
 	}
 	   

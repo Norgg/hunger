@@ -18,7 +18,7 @@ class Entity extends BaseEntity {
 	public var id: Int;
 	public var ownerId: Int;
 	public static var nextId: Int = 1;
-	var local = false;
+	public var local = false;
 	
 	var lastX = 0.;
 	var lastY = 0.;
@@ -64,7 +64,7 @@ class Entity extends BaseEntity {
 		}
 	}
 	
-	public function setFromPacket(x: Float, y: Float, rotation) {
+	public function setFromPacket(x: Float, y: Float, rotation: Float) {
 		var t = Timer.stamp();
 		nextT = t + (t - lastT);
 		lastT = t;
@@ -119,7 +119,7 @@ class Entity extends BaseEntity {
 		
 		x = Std.int((lerpBy * nextX) + ((1 - lerpBy) * lastX));
 		y = Std.int((lerpBy * nextY) + ((1 - lerpBy) * lastY));
-		rotation = 180 * (lerpBy * nextR) + ((1 - lerpBy) * lastR) / Math.PI;
+		this.rotation = 180 * ((lerpBy * nextR) + ((1 - lerpBy) * lastR)) / Math.PI;
 		//trace("Lerped to " + x + ", " + y);
 	}
 }

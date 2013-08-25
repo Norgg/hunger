@@ -7,6 +7,7 @@ import hunger.proto.Packet;
 import hunger.proto.ConnectAck;
 import hunger.shared.GameWorld;
 import hunger.shared.Player;
+import hunger.shared.Sword;
 import hunger.shared.Terrain;
 import sys.net.Socket;
 import haxe.Timer;
@@ -66,6 +67,7 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 				if (session.disconnected) {
 					sessions.remove(session.id);
 					world.remove(session.player);
+					world.remove(session.sword);
 				}
 			}
 			
@@ -83,14 +85,20 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 						var newPlayer = new Player();
 						newPlayer.nick = msg.connect.nick;
 						newPlayer.ownerId = session.id;
+						
+						var newSword = new Sword(newPlayer);
+						
 						var ack = new Packet();
 						ack.connectAck = new ConnectAck();
-						ack.connectAck.id = newPlayer.id;
+						ack.connectAck.playerId = newPlayer.id;
+						ack.connectAck.swordId = newSword.id;
 						ack.connectAck.terrain = terrain.message();
 						session.writeMsg(ack);
 						session.player = newPlayer;
+						session.sword = newSword;
 						
 						world.add(newPlayer);
+						world.add(newSword);
 					}
 					
 					if (msg.entityUpdate != null) {
@@ -109,7 +117,7 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 				for (entity in world.entities) {
 					for (session in sessions) {
 						if (entity.ownerId != session.id && !Std.is(entity, Terrain)) {
-							trace("Sending an entity to client");
+							//trace("Sending an entity to client");
 							session.writeMsg(entity.toPacket());
 						}
 					}

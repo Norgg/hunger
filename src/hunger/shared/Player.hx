@@ -1,6 +1,7 @@
 package hunger.shared;
 import hunger.proto.EntityType;
 import nape.callbacks.InteractionType;
+import nape.dynamics.InteractionGroup;
 import nape.geom.Vec2;
 import nape.shape.Circle;
 import nape.shape.Polygon;
@@ -10,6 +11,7 @@ class Player extends Entity {
 	var runtick = 0;
 	
 	public var nick: String;
+	public var group: InteractionGroup;
 	
 	var jumpTimer = 0;
 	
@@ -31,6 +33,7 @@ class Player extends Entity {
 			body.shapes.add(shape);
 		}
 		body.allowRotation = false;
+		body.group = group = new InteractionGroup(true);
 		this.x = body.position.x = x;
 		this.y = body.position.y = y;
 	}

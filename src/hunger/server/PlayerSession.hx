@@ -2,6 +2,7 @@ package hunger.server;
 
 import hunger.shared.MsgQueue;
 import hunger.shared.Player;
+import hunger.shared.Sword;
 import sys.net.Socket;
 import protohx.Message;
 import haxe.io.BytesOutput;
@@ -10,6 +11,7 @@ class PlayerSession {
 	public static var nextId = 1;
 	public var id: Int;
 	public var player: Player;
+	public var sword: Sword;
     public var socket: Socket;
 	public var msgQ: MsgQueue;
 	public var disconnected = false;
