@@ -15,11 +15,14 @@ class Player extends Entity {
 	public var group: InteractionGroup;
 	
 	var jumpTimer = 0;
+	var swingTimer = 0;
 	
 	var moveSpeed = 150;
 	var moveForce = 100;
 	var airMoveForce = 1;
 	var jumpForce = 30;
+	var swingForce = 10;
+	public var sword: Sword;
 	
 	public var hunger = 600;
 	public var dead = false;
@@ -53,12 +56,12 @@ class Player extends Entity {
 		
 		if (right) {
 			scaleX = 1;
-			texture("img/player-running.png", runOffset, -9);
+			texture("img/player-running.png", runOffset, -9, false);
 		} else if (left) {
 			scaleX = -1;
-			texture("img/player-running.png", runOffset, -9);
+			texture("img/player-running.png", runOffset, -9, false);
 		} else {
-			texture("img/player.png", -3, -9);
+			texture("img/player.png", -3, -9, false);
 		}
 		graphics.drawRect( -3, -9, 6, 18);
 	}
@@ -82,6 +85,7 @@ class Player extends Entity {
 		}
 		
 		if (jumpTimer > 0) jumpTimer--;
+		if (swingTimer > 0) swingTimer--;
 
 		if (body.interactingBodies(InteractionType.COLLISION, 1).length > 0) {
 			if (right) body.applyImpulse(Vec2.weak(moveForce,   0));
@@ -90,6 +94,10 @@ class Player extends Entity {
 				//trace("jump!");
 				body.applyImpulse(Vec2.weak(0, -jumpForce));
 				jumpTimer = 30;
+			}
+			if (down && swingTimer <= 0 && sword != null) {
+				sword.body.applyImpulse(Vec2.weak(0, -swingForce));
+				swingTimer = 30;
 			}
 			if (!left && !right && !up) {
 				body.velocity = body.velocity.mul(0.5);

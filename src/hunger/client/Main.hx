@@ -1,6 +1,7 @@
 package hunger.client;
 
 import flash.events.KeyboardEvent;
+import flash.external.ExternalInterface;
 import flash.text.TextField;
 import flash.text.TextFieldAutoSize;
 import flash.text.TextFormat;
@@ -59,7 +60,15 @@ class Main extends Sprite {
         msgQ = new MsgQueue();
         socket = new SocketConnection();
 		world = new GameWorld();
-        socket.connect("localhost", 42424, onConnect, addBytes, onClose);
+		
+		var host = "localhost:42424";
+		
+		try { host = ExternalInterface.call("host"); } catch (e: Dynamic) { }
+
+		var hostname = host.split(":")[0];
+		var port = Std.parseInt(host.split(":")[1]);
+		
+        socket.connect(hostname, port, onConnect, addBytes, onClose);
 		
 		text = new TextField();
 		text.defaultTextFormat = new TextFormat("_sans", 10, 0);
@@ -181,20 +190,20 @@ class Main extends Sprite {
 	function keydown(evt: KeyboardEvent) {
 		if (dead) return;
 		switch(evt.keyCode) {
-			case Keyboard.W: player.up = true;
-			case Keyboard.A: player.left = true;
-			case Keyboard.S: player.down = true;
-			case Keyboard.D: player.right = true;
+			case Keyboard.W, Keyboard.UP: player.up = true;
+			case Keyboard.A, Keyboard.LEFT: player.left = true;
+			case Keyboard.SPACE: player.down = true;
+			case Keyboard.D, Keyboard.RIGHT: player.right = true;
 		}
 	}
 	
 	function keyup(evt: KeyboardEvent) {
 		if (dead) return;
 		switch(evt.keyCode) {
-			case Keyboard.W: player.up = false;
-			case Keyboard.A: player.left = false;
-			case Keyboard.S: player.down = false;
-			case Keyboard.D: player.right = false;
+			case Keyboard.W, Keyboard.UP: player.up = false;
+			case Keyboard.A, Keyboard.LEFT: player.left = false;
+			case Keyboard.SPACE: player.down = false;
+			case Keyboard.D, Keyboard.RIGHT: player.right = false;
 		}
 	}
 	

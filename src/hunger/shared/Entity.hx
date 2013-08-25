@@ -32,6 +32,8 @@ class Entity extends BaseEntity {
 	public var up = false;
 	public var down = false;
 	
+	public var changed = false;
+	
 	public function new(local = false, isStatic = false, ?id, ?ownerId) {
 		super();
 		this.local = local;
@@ -57,9 +59,12 @@ class Entity extends BaseEntity {
 	public function update() {
 		//trace("Updating entity: " + id + ": " + x + ", " + y);
 		if (local) {
+			if (x != body.position.x || y != body.position.y || rotation != body.rotation * 180 / Math.PI) changed = true;
+			
 			x = Std.int(body.position.x);
 			y = Std.int(body.position.y);
 			rotation = body.rotation * 180 / Math.PI;
+			
 		} else {
 			lerp();
 		}

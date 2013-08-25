@@ -30,12 +30,12 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 	
 	var terrain: Terrain;
 	
-	var animals: IntMap<Animal>;
+	var numAnimals = 0;
+	var maxAnimals = 20;
     
 	public function new() {
         super();
 		world = new GameWorld();
-		animals = new IntMap<Animal>();
 
 		terrain = new Terrain();
 		terrain.generateHeights();
@@ -133,6 +133,8 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 							
 							world.add(newPlayer);
 							world.add(newSword);
+							
+							for (entity in world.entities) entity.changed = true; //Make sure we send all entities when new player joins.
 						}
 						
 						if (msg.entityUpdate != null) {
@@ -153,7 +155,10 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 						for (otherBody in session.player.body.interactingBodies(InteractionType.SENSOR, 1)) {
 							//trace("Player touched another thing");
 							if (
-								Std.is(otherBody.userData.entity, Sword) && 
+								(
+									Std.is(otherBody.userData.entity, Sword) ||
+									Std.is(otherBody.userData.entity, Animal)
+								) && 
 								otherBody.userData.entity.ownerId != session.id
 							) {
 								trace("Someone killed someone else!");
@@ -165,6 +170,15 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 								session.player.hunger += 300;
 							}
 						}
+						
+						for (otherBody in session.sword.body.interactingBodies(InteractionType.SENSOR, 1)) {
+							if (Std.is(otherBody.userData.entity, Animal)) {
+								numAnimals--;
+								remove(otherBody.userData.entity);
+								world.add(new Food(true, otherBody.userData.entity.x, otherBody.userData.entity.y));
+								world.add(new Food(true, otherBody.userData.entity.x, otherBody.userData.entity.y));
+							}
+						}
 					}
 				}
 				
@@ -172,7 +186,7 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 				if (tick % 3 == 0) {
 					for (entity in world.entities) {
 						for (session in sessions) {
-							if (entity.ownerId != session.id && !Std.is(entity, Terrain)) {
+							if (entity.ownerId != session.id && !Std.is(entity, Terrain) && entity.changed) {
 								//trace("Sending an entity to client");
 								session.writeMsg(entity.toPacket());
 							}
@@ -189,7 +203,11 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 				}
 				
 				//Spawn animals
-				//if (animals.
+				if (numAnimals < maxAnimals) {
+					numAnimals++;
+					var animal = new Animal(true, (Math.random() - 0.5) * 2000, 200);
+					world.add(animal);
+				}
 				
 				var t2 = Timer.stamp();
 				var delta = t2 - t1;
@@ -199,7 +217,7 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 			} catch (e: Dynamic) {
 				trace(e);
 				trace(haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
-			}			
+			}
 		}
 	}
 
