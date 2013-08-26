@@ -16,12 +16,15 @@ class PlayerSession {
 	public var msgQ: MsgQueue;
 	public var disconnected = false;
 	
+	public var lastX = 0.;
+	
     public function new(socket:Socket) {
         this.socket = socket;
 		id = nextId++;
         socket.setFastSend(true);
         socket.output.bigEndian = false;
         socket.input.bigEndian = false;
+		//socket.setBlocking(true);
 		msgQ = new MsgQueue();
     }
 
@@ -44,6 +47,7 @@ class PlayerSession {
             #else
             trace(haxe.Stack.toString(haxe.Stack.exceptionStack()));
             #end
+			//disconnected = true;
 			//close();
         }
     }

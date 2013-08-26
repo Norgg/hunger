@@ -15,7 +15,15 @@
   <script type="text/javascript">
       swfobject.registerObject("flv", "9");
   </script>
-  <script>function host() { return "new.norgg.org:42424"; }</script>
+  <script>
+  function host() { 
+	if (window.location.hash) {
+	return window.location.hash.slice(1);
+	} else {
+    return "new.norgg.org:42424"; 
+	}
+  }
+  </script>
   <!--<link rel="icon" href="" type="image/x-icon">-->
   </head>
   <body>
@@ -31,6 +39,7 @@
 	Kill and eat the beasts.<br/>
 	Get 50 food to win by fullness.<br/>
 	Multiplayer, go poke a friend.<br/>
+	If everything except you freezes, give the page a refresh.<br/>
   </p>
   <table>
   <tr><td>WAD/Arrows</td><td>move/jump</tr>

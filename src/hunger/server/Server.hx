@@ -84,6 +84,8 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 				tick++;
 
 				for (session in sessions) {
+					if (session.player != null) session.lastX = session.player.x;
+					
 					if (session.player != null && session.player.isDead()) {
 						remove(session.player);
 						remove(session.sword);
@@ -187,7 +189,9 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 						for (session in sessions) {
 							if (entity.ownerId != session.id && !Std.is(entity, Terrain) && entity.changed) {
 								//trace("Sending an entity to client");
-								session.writeMsg(entity.toPacket());
+								if (Math.abs(entity.x - session.lastX) < 500) {
+									session.writeMsg(entity.toPacket());
+								}
 							}
 						}
 					}
