@@ -221,7 +221,12 @@ class Server extends ThreadServer<PlayerSession, Bytes> {
 					}
 					
 					if (entity.x > 3000 || entity.x < -3000 || entity.y > 3000 || entity.y < -3000) {
-						remove(entity);
+						if (Std.is(entity, Animal)) {
+							numAnimals--;
+							remove(entity);
+						} else if (Std.is(entity, Food)) {
+							remove(entity);
+						}
 					}
 				}
 				
