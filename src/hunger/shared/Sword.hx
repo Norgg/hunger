@@ -25,7 +25,7 @@ class Sword extends Entity {
 		var shape = new Polygon(Polygon.box(3, 26));
 		
 		#if !flash
-		shape = new Polygon(Polygon.box(5, 28));
+		shape = new Polygon(Polygon.box(6, 30));
 		shape.sensorEnabled = true;
 		#end
 		
